@@ -1,0 +1,18 @@
+Metadata-Version: 2.4
+Name: etaledger
+Version: 0.1.0
+Summary: Thermodynamic efficiency measurement for computation — η = useful_joules / human_joules
+Author: Jesse Ray (OpenRoot)
+License: GPL-3.0
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: Topic :: Scientific/Engineering
+Requires-Python: >=3.8
+Dynamic: author
+Dynamic: classifier
+Dynamic: description
+Dynamic: license
+Dynamic: requires-python
+Dynamic: summary
+
+Universal efficiency primitive. Measures the real thermodynamic cost of any computation using Landauer's limit, ARM energy estimates, Merkle commitment, and bottleneck tracking. No external dependencies.

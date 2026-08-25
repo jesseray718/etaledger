@@ -1,0 +1,12 @@
+.ssh
+*.pem
+*.key
+*.gguf
+*.bin
+__pycache__
+*.pyc
+.syncthing.*.tmp
+ENDOFBRIDGE
+session_seeds
+ledger/live
+context_bridge/context.json

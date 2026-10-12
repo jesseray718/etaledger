@@ -94,3 +94,63 @@ class BottleneckTracker:
         if not vals:
             return 0.0
         return len(vals) / sum(1.0 / v for v in vals)
+
+
+# =============================================================================
+# ORDER-1: GAMMA — Gain Routing to Least-Served Nodes
+# Original formula from 0588_canon.py (2026-10-03): γ = Y*L*P*F / (Jh+Je+C)
+# =============================================================================
+
+def gamma(Y: float, L: float, P: float, F: float,
+          Jh: float, Je: float, C: float) -> float | None:
+    """Γ = gain routing multiplier to least-served nodes.
+    
+    Formula (provenance: openroot 0588_canon.py, 2026-10-03):
+        γ = (Y × L × P × F) / (Jh + Je + C)
+    
+    Parameters:
+        Y (yield): Useful output/value generated (J or equivalent units)
+        L (leverage): Amplification factor of the work (≥1.0)
+        P (priority): Need weight of recipient node (higher = less served)
+        F (flow): Network flow multiplier (routing efficiency)
+        Jh (human_joules): Human effort input
+        Je (embodied_joules): Physical/computational embodied energy
+        C (coordination_cost): Overhead to coordinate distribution
+    
+    Returns:
+        γ > 1.0: Value amplified for starving node (marginal utility high)
+        γ = 1.0: Neutral routing (equal distribution)
+        γ < 1.0: Suppressed (high saturation, marginal utility low)
+        None: Degenerate case (denominator = 0)
+    
+    Purpose:
+        Marginal utility economics as protocol. A unit of food, bandwidth,
+        compute, or knowledge is worth exponentially more to a starving node
+        than a saturated one. Gamma amplifies effective value at low-floor nodes,
+        accelerating bottom-floor elevation across the interconnected mesh.
+    
+    Source: Jesse McMillen, OpenRoot LLC, 2026-10-03T084200Z
+    Doctrine: "A commodity is infinitely more valuable to a starving node
+               than to a saturated node, allowing faster raising of the bottom floor."
+    """
+    denominator = Jh + Je + C
+    if denominator == 0:
+        return None  # Degenerate case
+    numerator = Y * L * P * F
+    return numerator / denominator
+
+def gamma_weight(node_saturation: float, scale: float = 1.0) -> float:
+    """Routing weight from node saturation. Starving > saturated, always.
+
+    node_saturation in [0.0, 1.0]: 0 = starving (maximum deficit), 1 = saturated.
+    Deficit = 1 - saturation. Weight normalized so a node at saturation 0.5
+    (moderately served) has weight 1.0:
+
+        W(sat) = scale * 2.0 * (1.0 - sat)
+
+    Falsifiable direction: W(0.1) = 1.8 > W(0.9) = 0.2  (ratio 9x).
+    A commodity routes to whichever connected node has the largest W.
+    """
+    if node_saturation < 0.0 or node_saturation > 1.0:
+        raise ValueError(f"node_saturation={node_saturation} must be in [0,1]")
+    return scale * 2.0 * (1.0 - node_saturation)
